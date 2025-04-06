@@ -16,25 +16,35 @@ class ProxyPool:
         page_soup = bs4.BeautifulSoup(self.__page_html__, 'html.parser')
         return page_soup.text.find("Captcha") > 0
 
-    def __is_available_proxy__(self, url, proxy):
-        if not proxy.startswith('http'):
-            proxy = f'http://{proxy}'
-    
-        proxy_dict = {
-            'http': proxy,
-            'https': proxy,
-        }
-    
-        opener = urllib.request.build_opener(urllib.request.ProxyHandler(proxy_dict))
-        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
-        
-        try:
-            self.__page_html__ = opener.open(urllib.request.Request(url), timeout=10).read()
-        except Exception as detail:
-            print(f"proxy {proxy}: {detail}")
-            return False
+    def __is_available_proxy__(self, url, proxies):
+        """
+        Проверяет доступность прокси из списка.
+        Возвращает первый доступный прокси или None, если все прокси не доступны.
+        """
+        for proxy in proxies:
+            # Проверяем, что прокси начинается с 'https://', если нет - добавляем
+            if not proxy.startswith('https'):
+                proxy = f'https://{proxy}'  # Добавляем префикс 'https://', если его нет.
 
-        return True
+            proxy_dict = {
+                #'http': proxy,
+                'https': proxy,  # Для HTTPS-прокси используем 'https'
+            }
+
+            opener = urllib.request.build_opener(urllib.request.ProxyHandler(proxy_dict))
+            opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+
+            try:
+                # Пытаемся подключиться через прокси
+                self.__page_html__ = opener.open(urllib.request.Request(url), timeout=10).read()
+                print(f"proxy {proxy}: доступен")
+                return proxy  # Возвращаем первый доступный прокси
+            except Exception as detail:
+                print(f"proxy {proxy}: {detail} - Недоступен")
+
+        # Если все прокси недоступны
+        print("Все прокси недоступны")
+        return None
 
 
     def is_empty(self):

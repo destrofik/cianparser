@@ -17,25 +17,24 @@ class ProxyPool:
         return page_soup.text.find("Captcha") > 0
 
     def __is_available_proxy__(self, url, proxy):
-    # Убедимся, что прокси содержит протокол
-    if not proxy.startswith('http'):
-        proxy = f'http://{proxy}'
-
-    proxy_dict = {
-        'http': proxy,
-        'https': proxy,
-    }
-
-    opener = urllib.request.build_opener(urllib.request.ProxyHandler(proxy_dict))
-    opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        if not proxy.startswith('http'):
+            proxy = f'http://{proxy}'
     
-    try:
-        self.__page_html__ = opener.open(urllib.request.Request(url), timeout=10).read()
-    except Exception as detail:
-        print(f"proxy {proxy}: {detail}")
-        return False
+        proxy_dict = {
+            'http': proxy,
+            'https': proxy,
+        }
+    
+        opener = urllib.request.build_opener(urllib.request.ProxyHandler(proxy_dict))
+        opener.addheaders = [('User-agent', 'Mozilla/5.0')]
+        
+        try:
+            self.__page_html__ = opener.open(urllib.request.Request(url), timeout=10).read()
+        except Exception as detail:
+            print(f"proxy {proxy}: {detail}")
+            return False
 
-    return True
+        return True
 
 
     def is_empty(self):
